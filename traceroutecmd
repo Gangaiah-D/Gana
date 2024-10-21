@@ -1,0 +1,24 @@
+package p1;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+public class traceroutecmd {
+
+    public static void runSystemCommand(String command) {
+        try {
+            Process p = Runtime.getRuntime().exec(command);
+            BufferedReader inputStream = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String s = "";
+            while ((s = inputStream.readLine()) != null) {
+                System.out.println(s);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();  // Optional: To help with debugging if there is an error
+        }
+    }
+
+    public static void main(String[] args) {
+        String ip = "www.drranurekha.com";
+        runSystemCommand("tracert " + ip);  // Added space between 'tracert' and the IP/hostname
+    }
+}
