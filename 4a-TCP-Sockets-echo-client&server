@@ -1,0 +1,76 @@
+package p1;
+import java.io.*;
+import java.net.*;
+class echoserver
+{
+public static void main(String args[]) throws Exception
+{
+String str;
+ServerSocket ss;
+Socket s;
+BufferedReader br;
+try
+{
+ss = new ServerSocket(2000);
+s = ss.accept();
+br = new BufferedReader (new InputStreamReader(s.getInputStream()));
+PrintStream ps = new PrintStream(s.getOutputStream());
+System.out.println("Connected for echo:");
+while((str=br.readLine())!=null)
+{
+if(str.equals("end"))
+{
+System.out.println("Client disconnected");
+br.close();
+break;
+}
+else
+ps.println(str);
+}
+}
+catch(UnknownHostException e)
+{
+System.out.println(e.toString());
+}
+catch(IOException ioe)
+{
+System.out.println(ioe);
+}
+} 
+}
+-----------------------------------
+package p1;
+import java.io.*;
+import java.net.*;
+class echoclient
+{
+public static void main(String args[]) throws Exception 
+{
+String str;
+try
+{
+Socket cs = new Socket(InetAddress.getLocalHost(),2000);
+BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+BufferedReader br_sock = new BufferedReader(new 
+InputStreamReader(cs.getInputStream()));
+PrintStream ps = new PrintStream(cs.getOutputStream());
+System.out.println("Start echoing... type 'end' to terminate");
+while((str=br.readLine())!=null)
+{
+ps.println(str);
+if(str.equals("end"))
+break;
+else
+System.out.println("echoed from server:"+br_sock.readLine());
+}
+}
+catch(UnknownHostException e)
+{
+System.out.println(e.toString());
+}
+catch(IOException ioe)
+{
+System.out.println(ioe);
+}
+}
+}
