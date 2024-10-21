@@ -1,0 +1,92 @@
+package p1;
+import java.net.*;
+import java.io.*;
+
+public class FTPClient {
+    public static void main(String args[]) {
+        try {
+            // Create a socket to connect to the server at localhost on port 4000
+            Socket s = new Socket(InetAddress.getLocalHost(), 4010);
+            
+            // Reading the file name from keyboard
+            System.out.println("Enter the file name:");
+            BufferedReader keyRead = new BufferedReader(new InputStreamReader(System.in));
+            String fname = keyRead.readLine();  // Use keyRead to read input from the console
+
+            // Sending the file name to the server
+            OutputStream ostream = s.getOutputStream();
+            PrintWriter pwrite = new PrintWriter(ostream, true);
+            pwrite.println(fname);
+
+            // Receiving the contents from server
+            InputStream istream = s.getInputStream();
+            BufferedReader socketRead = new BufferedReader(new InputStreamReader(istream));
+
+            String str;
+
+            // Reading line-by-line from the server
+            while ((str = socketRead.readLine()) != null) {
+                System.out.println(str);
+            }
+
+            // Close resources
+            pwrite.close();
+            socketRead.close();
+            keyRead.close();
+            s.close();  // Also close the socket
+
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+----------------------------
+package p1;
+import java.net.*;
+import java.io.*;
+
+public class FTPServer {
+    public static void main(String args[]) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(4010);
+            System.out.println("Server is listening on port 4000");
+
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Client connected");
+
+                // Handle client in a new thread or method
+                new Thread(() -> handleClient(clientSocket)).start();
+            }
+        } catch (IOException e) {
+            System.out.println("Server error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void handleClient(Socket clientSocket) {
+        try {
+            BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter output = new PrintWriter(clientSocket.getOutputStream(), true);
+            
+            String fileName = input.readLine();  // Read the file name from client
+            System.out.println("Requested file: " + fileName);
+
+            // Simulating file content response
+            if (fileName.equals("example.txt")) {
+                output.println("Content of example.txt");
+            } else {
+                output.println("File not found: " + fileName);
+            }
+
+            // Close resources
+            output.close();
+            input.close();
+            clientSocket.close();
+        } catch (IOException e) {
+            System.out.println("Client handling error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
