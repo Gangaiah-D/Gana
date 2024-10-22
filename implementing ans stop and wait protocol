@@ -1,0 +1,105 @@
+package p1;
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+
+class StopWaitSender {
+
+    public static void main(String[] args) throws Exception {
+        StopWaitSender sws = new StopWaitSender();
+        sws.run();
+    }
+
+    public void run() throws Exception {
+
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Enter number of frames to be sent:");
+        int n = sc.nextInt();
+
+        // Create socket connection
+        Socket myskt = new Socket("localhost", 9999);
+
+        // Create output stream to send data
+        PrintStream myps = new PrintStream(myskt.getOutputStream());
+
+        BufferedReader bf = new BufferedReader(new InputStreamReader(myskt.getInputStream()));
+
+        for (int i = 0; i < n; ) {
+
+            // Send frame number
+            System.out.println("Frame no: " + i + " is sent");
+            myps.println(i);
+
+            // Receive acknowledgment
+            String ack = bf.readLine();
+
+            if (ack != null && ack.equals("ACK")) {
+                System.out.println("Acknowledgment received for frame " + i);
+                i++;  // Move to the next frame only after receiving ACK
+                Thread.sleep(4000); // Simulating delay
+            } else {
+                System.out.println("Resending frame " + i);
+                // No need to explicitly resend here; it will be sent in the next iteration of the loop
+            }
+        }
+
+        // Send "exit" message to indicate completion
+        myps.println("exit");
+
+        // Close resources
+        myps.close();
+        bf.close();
+        myskt.close();
+        sc.close();
+    }
+}
+----------------------------
+package p1;
+import java.io.*;
+import java.net.*;
+class StopWaitReceiver {
+
+    public static void main(String args[]) throws Exception {
+        StopWaitReceiver swr = new StopWaitReceiver();
+        swr.run();
+    }
+
+    public void run() throws Exception {
+        String temp = "any message", str = "exit";
+
+        // Create ServerSocket and accept incoming connection
+        ServerSocket myss = new ServerSocket(9999);
+        Socket ss_accept = myss.accept();
+
+        // Create BufferedReader to receive data and PrintStream to send acknowledgment
+        BufferedReader ss_bf = new BufferedReader(new InputStreamReader(ss_accept.getInputStream()));
+        PrintStream myps = new PrintStream(ss_accept.getOutputStream());
+
+        while (temp.compareTo(str) != 0) {
+            Thread.sleep(1000);
+
+            // Receive frame from sender
+            temp = ss_bf.readLine();
+            
+            if (temp.compareTo(str) == 0) {
+                break;  // Exit if "exit" message is received
+            }
+
+            System.out.println("Frame " + temp + " was received");
+
+            Thread.sleep(500);
+
+            // Send acknowledgment back to the sender
+            myps.println("Received");
+        }
+
+        System.out.println("ALL FRAMES WERE RECEIVED SUCCESSFULLY");
+
+        // Close the resources
+        ss_bf.close();
+        myps.close();
+        ss_accept.close();
+        myss.close();
+    }
+}
